@@ -1,54 +1,69 @@
 import argparse
+import configparser
+import os
 import time
+from datetime import date
 
-from ecg_to_images import image_types
-from .image_types.a_2d import create_images
-from .image_types.a_1d import create_images
-from .image_types.b_2d import create_images
-from .image_types.b_1d import create_images
-from .image_types.c_2d import create_images
-from .image_types.c_1d import create_images
+import logging
+from .image_types.a_2d import EcgImagesA_2D
+import sys
 
 from .config_parser import read_config_file
 from enum import Enum
 
 def main():
 
+    print("entry")
     start = time.perf_counter()
+    init_log()
+    ns = parse_cmd_arguments()
+
+    # pass the namespace containing the args to read the config file
+    # options = read_config_file(ns)
+    config = configparser.ConfigParser()
+    config.read('/home/george/Dropbox/personal/thesis/repos/ecg-images/ecg_to_images/config.ini')
+
+    image_type = config.get('image','type')
+
+    mod = sys.modules['ecg_to_images.image_types.a_2d']
+    # call the method of the module dynamically using reflection to avoid typing 6 ifs
+    clsname = getattr(mod, 'EcgImages' + image_type)
+
+    runtime_cls = globals()['EcgImages' + image_type]
+    getattr(clsname, 'create_images')(runtime_cls, config)
+
+    image_obj = runtime_cls(10, 'NORMAL')
+
+    print(image_obj)
+    print(image_type.lower())
+    image_obj.create_images(config)
+    function_name = str(image_obj.create_images)
+
+
+    # getattr(image_type.lower(), 'create_images')(config)
+    # else:
+    #     logging.ERROR("The dictionary is empty")
+
+    end = time.perf_counter()
+    elapsed = end - start
+    print('The conversion took: {} seconds'.format(elapsed))
+
+
+def init_log():
+    log_dir = os.path.join(os.path.normpath(os.getcwd() + os.sep), 'logs')
+    log_fname = os.path.join(log_dir, 'logfile_' + str(date.today())+ '.log')
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)8s %(message)s',
+        filename=log_fname, filemode='w', level=logging.DEBUG)
+
+
+def parse_cmd_arguments():
     ap = argparse.ArgumentParser(description='Ecg-to-image converter tool')
     # use the default configuration files that it is inside the package
     ap.add_argument('-c',
                     '--config',
                     dest='config',
-                    nargs = '?',
+                    nargs='?',
                     required=True,
                     help='You have to specify the full absolute path to the configuration file')
-    ns = ap.parse_args()
-
-    # pass the namespace to read the file
-    options = read_config_file(ns)
-
-    # test if the dictionary with the config is empty
-    if not options:
-
-        # get the type of the image specified at the configuration file
-        image_type = options.get('i_type')
-        # call the method of the module dynamically using reflection to avoid typing 6 ifs
-        getattr(image_type.lower(),create_images())()
-
-
-    end = time.perf_counter()
-    elapsed = end - start
-    print('The convetion took: {} seconds'.format(elapsed))
-
-class ImageType(Enum):
-    A_2D = 1
-    A_1D = 2
-    B_2D = 3
-    B_1D = 4
-    C_2D = 5
-    C_1D = 6
-
-    @classmethod
-    def has_value(cls, value):
-        return value in cls.__members__
+    return ap.parse_args()

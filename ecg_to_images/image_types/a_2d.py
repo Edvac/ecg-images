@@ -13,11 +13,17 @@ import logging
 from PIL import Image
 from enum import Enum
 
+
 class EcgImagesA_2D:
 
     def __init__(self, size, pattern):
-        self.size = size
-        self.pattern = pattern
+        self._size = size
+        if pattern == "NORMAL":
+            self._pattern = ImagePattern.NORMAL
+        elif pattern == "SNAKE":
+            self._pattern = ImagePattern.SNAKE
+        else:
+            raise AttributeError("Attribute should be NORMAL or SNAKE")
 
     @property
     def size(self):  # implements the get - this name is *the* name
@@ -39,9 +45,12 @@ class EcgImagesA_2D:
 
     @pattern.setter
     def pattern(self, value):  # name must be the same
-        if value == "NORMAL" or "SNAKE":
-            self._pattern = value
+        if value == "NORMAL":
+            self._pattern = ImagePattern.NORMAL
+        elif value == "SNAKE":
+            self._pattern = ImagePattern.SNAKE
         else:
+            logging.getLogger().exception("Attribute should be normal or snake")
             raise AttributeError("Attribute should be normal or snake")
 
     #
@@ -53,9 +62,8 @@ class EcgImagesA_2D:
     def pattern(self):  # again, name must be the same
         del self._pattern
 
-
     def create_images(self, options):
-    # def create_images(filenames, image_pattern, folder_name):
+        # def create_images(filenames, image_pattern, folder_name):
         """
         :param folder_name:
         :param image_pattern:
@@ -81,7 +89,7 @@ class EcgImagesA_2D:
                 patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float64)
             except:
                 e = sys.exc_info()[0]
-                print ("Error in create_images method: " + e)
+                print("Error in create_images method: " + e)
                 continue
 
             file_name_base_name = ntpath.basename(fn)
@@ -95,26 +103,28 @@ class EcgImagesA_2D:
                 img_obj = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
                 img_obj.pattern = options['image']['pattern']
 
-                test = img_obj.pattern
-                test2 = ImagePattern.SNAKE
-                if img_obj.pattern == ImagePattern.SNAKE:
+                if (img_obj.pattern == ImagePattern.NORMAL):
                     image_array_2d = self.convert_to_snake_two_dim_array(image_array)
-                    save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "snake_pattern"), file_name_base_name)
-                elif self.pattern == ImagePattern.NORMAL:
+                    save_folder_name = os.path.join(os.path.join
+                                                    (options.get('output', 'img_dir'), "normal_pattern"),
+                                                     file_name_base_name)
+                elif img_obj.pattern == ImagePattern.SNAKE:
                     image_array_2d = self.convert_to_normal_two_dim_array(image_array)
-                    save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir', "normal_pattern"), file_name_base_name))
+                    save_folder_name = os.path.join(os.path.join
+                                                    (options.get('output', 'img_dir'), "snake_pattern"),
+                                                    file_name_base_name)
+
                 else:
-                    print ("Warning: unknown image pattern (use NORMAL or SNAKE) ", self.pattern, ImagePattern.SNAKE)
+                    print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                     continue
 
                 # clear the variable
 
-
                 image = Image.fromarray(image_array_2d, "L")
-                self.save_image(image, save_folder_name, file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
+                self.save_image(image, save_folder_name,
+                                file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
 
                 it = it + image_array_size  # moving the 'offset'
-
 
     def save_image(img, folder_name, filename):
         """Create directories for each patient and store their's image files"""
@@ -125,11 +135,11 @@ class EcgImagesA_2D:
                 os.makedirs(folder_name)
             except OSError:
                 if not os.path.isdir(folder_name):
+                    logging.getLogger().exception("The directory for file: " +filename+ " Already exists: ", OSError)
                     raise
 
         img.save(folder_name + "/" + filename + ".png")
-
-
+        print("Saving image for patient: " + filename)
     def convert_to_snake_two_dim_array(one_dim_array):
         """Convert 1d array to 2d using snake pattern
 
@@ -166,7 +176,6 @@ class EcgImagesA_2D:
                         return two_dim_array
                 turn = True
 
-
     def convert_to_normal_two_dim_array(one_dim_array):
         """Convert 1d array to 2d using normal pattern
 
@@ -190,7 +199,6 @@ class EcgImagesA_2D:
                 else:
                     return two_dim_array
 
-
     def get_absolute_file_names(directory_name):
         """
         :param directory_name:
@@ -199,9 +207,9 @@ class EcgImagesA_2D:
 
 
 class ImagePattern(Enum):
-        SNAKE = 1
-        NORMAL = 2
+    SNAKE = 1
+    NORMAL = 2
 
-        @classmethod
-        def has_value(cls, value):
-            return value in cls.__members__
+    @classmethod
+    def has_value(cls, value):
+        return value in cls.__members__

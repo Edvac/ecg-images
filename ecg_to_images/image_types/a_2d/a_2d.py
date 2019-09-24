@@ -3,21 +3,33 @@
     :platform: Win 64bit
     :synopsis: module creating images from 24h RR intervals
 
-.. moduleauthor:: George Politis <gpolitis@protonmail.com>
+.. moduleauthor:: George Politis <g-politis@outlook.com>
 """
 import os
 import sys
 import numpy as np
 import ntpath
 import logging
+
+from ecg_to_images.image_types.a_2d.signal_to_array import convert_to_snake_two_dim_array, \
+    convert_to_normal_two_dim_array
+from ecg_to_images.image_types.save_images import get_absolute_file_names, save_image
 from PIL import Image
 from enum import Enum
+
+from ecg_to_images.preprocessing.Normalize import normalize
 
 
 class EcgImagesA_2D:
 
+
     def __init__(self, size, pattern):
-        self._size = size
+        if 0 <= size <= 10000:
+            self._size = size
+        else:
+            raise ValueError("protected_value must be " +
+                             "between 0 and 1000 inclusive")
+
         if pattern == "NORMAL":
             self._pattern = ImagePattern.NORMAL
         elif pattern == "SNAKE":
@@ -41,7 +53,7 @@ class EcgImagesA_2D:
             self._size = int(value)
         else:
             raise ValueError("protected_value must be " +
-                             "between 0 and 100 inclusive")
+                             "between 0 and 1000 inclusive")
 
     @pattern.setter
     def pattern(self, value):  # name must be the same
@@ -76,9 +88,9 @@ class EcgImagesA_2D:
         # n is the number of chunk arrays.size = 400
         # rr_array: patient RRs in an array
         # array_1_of_400: smaller array, size = p
-        image_array_size = 400
+        image_array_size = int(options.get("image","size"))
 
-        filenames = self.get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
+        filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
 
         for fn in filenames:
             if not os.path.isfile(fn):
@@ -92,6 +104,7 @@ class EcgImagesA_2D:
                 print("Error in create_images method: " + e)
                 continue
 
+            patient_array_array = normalize(patient_array)
             file_name_base_name = ntpath.basename(fn)
 
             it = 0
@@ -101,109 +114,28 @@ class EcgImagesA_2D:
                 image_array = patient_array[it: it + image_array_size]
 
                 img_obj = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
-                img_obj.pattern = options['image']['pattern']
+                # img_obj.pattern = options['image']['pattern']
 
                 if (img_obj.pattern == ImagePattern.NORMAL):
-                    image_array_2d = self.convert_to_snake_two_dim_array(image_array)
+                    image_array_2d = convert_to_snake_two_dim_array(image_array)
                     save_folder_name = os.path.join(os.path.join
                                                     (options.get('output', 'img_dir'), "normal_pattern"),
                                                      file_name_base_name)
                 elif img_obj.pattern == ImagePattern.SNAKE:
-                    image_array_2d = self.convert_to_normal_two_dim_array(image_array)
+                    image_array_2d = convert_to_normal_two_dim_array(image_array)
                     save_folder_name = os.path.join(os.path.join
                                                     (options.get('output', 'img_dir'), "snake_pattern"),
                                                     file_name_base_name)
-
                 else:
                     print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                     continue
 
                 # clear the variable
-
                 image = Image.fromarray(image_array_2d, "L")
-                self.save_image(image, save_folder_name,
+                save_image(image, save_folder_name,
                                 file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
 
                 it = it + image_array_size  # moving the 'offset'
-
-    def save_image(img, folder_name, filename):
-        """Create directories for each patient and store their's image files"""
-
-        if not os.path.isdir(folder_name):
-            try:
-                # Check if the a patient's directory exists
-                os.makedirs(folder_name)
-            except OSError:
-                if not os.path.isdir(folder_name):
-                    logging.getLogger().exception("The directory for file: " +filename+ " Already exists: ", OSError)
-                    raise
-
-        img.save(folder_name + "/" + filename + ".png")
-        print("Saving image for patient: " + filename)
-    def convert_to_snake_two_dim_array(one_dim_array):
-        """Convert 1d array to 2d using snake pattern
-
-        :param ndarray one_dim_array: 40 value array.
-        :returns: ndarray two_dim_array: two_dim_array20x20 which will be used for image creation.
-        :rtype: ndarray
-
-        """
-
-        # if two_dim_array is not set to zero will include values
-        # from the previous image because rr_array.size $ 400 != 0
-        two_dim_array = np.zeros((20, 20), dtype=np.float64)
-
-        one_dim_array_size = one_dim_array.size
-
-        k = 0
-        turn = False
-        for i in range(0, 20):
-            if turn is True:
-                for j in range(19, -1, -1):
-                    two_dim_array[i][j] = one_dim_array[k]
-                    # check if one_dim_array < 20x20, for the last chunk
-                    if k + 1 < one_dim_array_size:
-                        k += 1
-                    else:
-                        return two_dim_array
-                turn = False
-            elif turn is False:
-                for j in range(0, 20):
-                    two_dim_array[i][j] = one_dim_array[k]
-                    if k + 1 < one_dim_array_size:
-                        k += 1
-                    else:
-                        return two_dim_array
-                turn = True
-
-    def convert_to_normal_two_dim_array(one_dim_array):
-        """Convert 1d array to 2d using normal pattern
-
-        :param ndarray one_dim_array: 40 value array.
-        :returns: ndarray two_dim_array: two_dim_array20x20 which will be used for image creation.
-        :rtype: ndarray
-        """
-
-        # if two_dim_array is not set to zero will include values
-        # from the previous image because rr_array.size $ 400 != 0
-
-        one_dim_array_size = one_dim_array.size
-
-        two_dim_array = np.zeros((20, 20), dtype=np.float64)
-        k = 0
-        for i in range(0, 20):
-            for j in range(0, 20):
-                two_dim_array[i][j] = one_dim_array[k]
-                if k + 1 < one_dim_array_size:
-                    k += 1
-                else:
-                    return two_dim_array
-
-    def get_absolute_file_names(directory_name):
-        """
-        :param directory_name:
-        """
-        return [os.path.join(directory_name, f) for f in os.listdir(directory_name) if f.endswith('.txt')]
 
 
 class ImagePattern(Enum):

@@ -18,7 +18,7 @@ from PIL import Image
 from enum import Enum
 
 from ecg_to_images.preprocessing.Normalize import normalize
-
+logger = logging.getLogger(__name__)
 
 class EcgImagesA_2D:
 
@@ -35,7 +35,12 @@ class EcgImagesA_2D:
         elif pattern == "SNAKE":
             self._pattern = ImagePattern.SNAKE
         else:
-            raise AttributeError("Attribute should be NORMAL or SNAKE")
+            try:
+                raise ImagePatternError('Attribute should be NORMAL or SNAKE')
+            except ImagePatternError as err:
+                logger.error(err.args, exc_info=True)
+                raise
+
 
     @property
     def size(self):  # implements the get - this name is *the* name
@@ -62,6 +67,7 @@ class EcgImagesA_2D:
         elif value == "SNAKE":
             self._pattern = ImagePattern.SNAKE
         else:
+            logging.debug("lalal")
             logging.getLogger().exception("Attribute should be normal or snake")
             raise AttributeError("Attribute should be normal or snake")
 
@@ -145,3 +151,6 @@ class ImagePattern(Enum):
     @classmethod
     def has_value(cls, value):
         return value in cls.__members__
+
+class ImagePatternError(Exception):
+    pass

@@ -15,7 +15,7 @@ def save_image(img, folder_name, filename):
                 raise
 
     img.save(folder_name + "/" + filename + ".png")
-    print("Saving image for patient: " + filename)
+    # print("Saving image for patient: " + filename)
 
 def get_absolute_file_names(directory_name):
     list = [os.path.join(directory_name, f) for f in os.listdir(directory_name) if f.endswith('.txt')]

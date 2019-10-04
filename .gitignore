@@ -104,4 +104,4 @@ venv.bak/
 .mypy_cache/
 
 .idea/
-ecg_to_images/utils/plot_template.py
+ecg_to_images/eda/plot_template.py

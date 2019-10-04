@@ -11,14 +11,22 @@ import numpy as np
 import ntpath
 import logging
 
+
+# QQ Plot
+from ecg_to_images.eda.std import calc_standard_deviation
 from ecg_to_images.image_types.a_2d.signal_to_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
+from ecg_to_images.image_types.custom_exceptions import ImagePatternError
 from ecg_to_images.image_types.save_images import get_absolute_file_names, save_image
 from PIL import Image
 from enum import Enum
 
-from ecg_to_images.preprocessing.Normalize import normalize
+from ecg_to_images.eda.is_normally_distributed import is_normally_dist
+
 logger = logging.getLogger(__name__)
+
+
+
 
 class EcgImagesA_2D:
 
@@ -110,7 +118,17 @@ class EcgImagesA_2D:
                 print("Error in create_images method: " + e)
                 continue
 
-            patient_array_array = normalize(patient_array)
+
+            negative = {}
+            if sum(n < 0 for n in patient_array) > 1:
+                negative[fn] = "negative"
+            else:
+                negative[fn] = "positive"
+
+            calc_standard_deviation(patient_array, False)
+            is_normally_dist(patient_array)
+            # patient_normalized_array = normalize(patient_array)
+            # patient_standardized_array = standardize(patient_array)
             file_name_base_name = ntpath.basename(fn)
 
             it = 0
@@ -126,7 +144,7 @@ class EcgImagesA_2D:
                     image_array_2d = convert_to_snake_two_dim_array(image_array)
                     save_folder_name = os.path.join(os.path.join
                                                     (options.get('output', 'img_dir'), "normal_pattern"),
-                                                     file_name_base_name)
+                                                    file_name_base_name)
                 elif img_obj.pattern == ImagePattern.SNAKE:
                     image_array_2d = convert_to_normal_two_dim_array(image_array)
                     save_folder_name = os.path.join(os.path.join
@@ -139,9 +157,10 @@ class EcgImagesA_2D:
                 # clear the variable
                 image = Image.fromarray(image_array_2d, "L")
                 save_image(image, save_folder_name,
-                                file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
-
+                           file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
                 it = it + image_array_size  # moving the 'offset'
+
+        print(negative)
 
 
 class ImagePattern(Enum):
@@ -152,5 +171,4 @@ class ImagePattern(Enum):
     def has_value(cls, value):
         return value in cls.__members__
 
-class ImagePatternError(Exception):
-    pass
+

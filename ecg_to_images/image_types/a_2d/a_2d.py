@@ -22,6 +22,7 @@ from PIL import Image
 from enum import Enum
 
 from ecg_to_images.eda.is_normally_distributed import is_normally_dist
+from ecg_to_images.preprocessing.negative_values import negative_values
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +107,10 @@ class EcgImagesA_2D:
 
         filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
 
+
+
+
+
         for fn in filenames:
             if not os.path.isfile(fn):
                 print("Warning in create_images method: " + fn + " does not exists.")
@@ -119,48 +124,46 @@ class EcgImagesA_2D:
                 continue
 
 
-            negative = {}
-            if sum(n < 0 for n in patient_array) > 1:
-                negative[fn] = "negative"
-            else:
-                negative[fn] = "positive"
 
             calc_standard_deviation(patient_array, False)
             is_normally_dist(patient_array)
             # patient_normalized_array = normalize(patient_array)
             # patient_standardized_array = standardize(patient_array)
-            file_name_base_name = ntpath.basename(fn)
+            # file_name_base_name = ntpath.basename(fn)
+            #
+            # it = 0
+            # # global image_array_2d
+            # while it < patient_array.size:
+            #     # slices go only until the last value, even if it + image_array_size > patient_array.size
+            #     image_array = patient_array[it: it + image_array_size]
+            #
+            #     img_obj = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
+            #     # img_obj.pattern = options['image']['pattern']
+            #
+            #     if (img_obj.pattern == ImagePattern.NORMAL):
+            #         image_array_2d = convert_to_snake_two_dim_array(image_array)
+            #         save_folder_name = os.path.join(os.path.join
+            #                                         (options.get('output', 'img_dir'), "normal_pattern"),
+            #                                         file_name_base_name)
+            #     elif img_obj.pattern == ImagePattern.SNAKE:
+            #         image_array_2d = convert_to_normal_two_dim_array(image_array)
+            #         save_folder_name = os.path.join(os.path.join
+            #                                         (options.get('output', 'img_dir'), "snake_pattern"),
+            #                                         file_name_base_name)
+            #     else:
+            #         print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
+            #         continue
+            #
+            #     # clear the variable
+            #     image = Image.fromarray(image_array_2d, "L")
+            #     save_image(image, save_folder_name,
+            #                file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
+            #     it = it + image_array_size  # moving the 'offset'
 
-            it = 0
-            # global image_array_2d
-            while it < patient_array.size:
-                # slices go only until the last value, even if it + image_array_size > patient_array.size
-                image_array = patient_array[it: it + image_array_size]
-
-                img_obj = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
-                # img_obj.pattern = options['image']['pattern']
-
-                if (img_obj.pattern == ImagePattern.NORMAL):
-                    image_array_2d = convert_to_snake_two_dim_array(image_array)
-                    save_folder_name = os.path.join(os.path.join
-                                                    (options.get('output', 'img_dir'), "normal_pattern"),
-                                                    file_name_base_name)
-                elif img_obj.pattern == ImagePattern.SNAKE:
-                    image_array_2d = convert_to_normal_two_dim_array(image_array)
-                    save_folder_name = os.path.join(os.path.join
-                                                    (options.get('output', 'img_dir'), "snake_pattern"),
-                                                    file_name_base_name)
-                else:
-                    print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
-                    continue
-
-                # clear the variable
-                image = Image.fromarray(image_array_2d, "L")
-                save_image(image, save_folder_name,
-                           file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
-                it = it + image_array_size  # moving the 'offset'
-
-        print(negative)
+        negative = negative_values(options)
+        for attribute, value in negative.items():
+            print('{} : {}'.format(attribute, value))
+        print(len(negative))
 
 
 class ImagePattern(Enum):

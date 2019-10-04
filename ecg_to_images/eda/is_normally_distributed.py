@@ -5,8 +5,8 @@ from statsmodels.graphics.gofplots import qqplot
 
 def is_normally_dist(patient_array):
     # Quantile - Quantile test
-    qqplot(patient_array, line='s')
-    pyplot.show()
+    # qqplot(patient_array, line='s')
+    # pyplot.show()
 
 
     print("\nD’Agostino’s K^2 Test")

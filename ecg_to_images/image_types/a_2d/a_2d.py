@@ -19,11 +19,11 @@ from ecg_to_images.image_types.a_2d.signal_to_array import convert_to_snake_two_
     convert_to_normal_two_dim_array
 from ecg_to_images.image_types.custom_exceptions import ImagePatternError
 from ecg_to_images.image_types.save_images import get_absolute_file_names, save_image
+from ecg_to_images.preprocessing.remove_negative_values import *
 from PIL import Image
 from enum import Enum
 
 from ecg_to_images.eda.is_normally_distributed import is_normally_dist
-from ecg_to_images.preprocessing.negative_values import negative_values
 
 logger = logging.getLogger(__name__)
 
@@ -161,12 +161,17 @@ class EcgImagesA_2D:
             #                file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
             #     it = it + image_array_size  # moving the 'offset'
 
-        negative = negative_values(options)
+        preprocessing(options)
 
-        for attribute, value in negative.items():
-            print('{} : {}'.format(attribute, value))
-        print(len(negative))
 
+        # for attribute, value in negative.items():
+        #     print('{} : {}'.format(attribute, value))
+        # print(len(negative))
+
+
+
+def preprocessing(config_options):
+    remove_negative_values(config_options)
 
 class ImagePattern(Enum):
     SNAKE = 1

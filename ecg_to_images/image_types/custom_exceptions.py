@@ -1,0 +1,2 @@
+class ImagePatternError(Exception):
+    pass

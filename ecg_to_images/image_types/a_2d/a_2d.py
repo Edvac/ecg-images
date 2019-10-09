@@ -5,6 +5,7 @@
 
 .. moduleauthor:: George Politis <g-politis@outlook.com>
 """
+import json
 import os
 import sys
 import numpy as np
@@ -125,8 +126,8 @@ class EcgImagesA_2D:
 
 
 
-            calc_standard_deviation(patient_array, False)
-            is_normally_dist(patient_array)
+            # calc_standard_deviation(patient_array, False)
+            # is_normally_dist(patient_array)
             # patient_normalized_array = normalize(patient_array)
             # patient_standardized_array = standardize(patient_array)
             # file_name_base_name = ntpath.basename(fn)
@@ -161,6 +162,7 @@ class EcgImagesA_2D:
             #     it = it + image_array_size  # moving the 'offset'
 
         negative = negative_values(options)
+
         for attribute, value in negative.items():
             print('{} : {}'.format(attribute, value))
         print(len(negative))

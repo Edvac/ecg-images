@@ -7,11 +7,11 @@ from ecg_to_images.image_types.save_images import get_absolute_file_names
 
 def negative_values(options):
 
-    filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
+    path_filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
 
     negative = {}
 
-    for fn in filenames:
+    for fn in path_filenames:
         if not os.path.isfile(fn):
             print("Warning in create_images method: " + fn + " does not exists.")
             continue
@@ -23,8 +23,14 @@ def negative_values(options):
             print("Error in create_images method: " + e)
             continue
 
-        if sum(n < 0 for n in patient_array) > 1:
-            negative[fn] = "negative"
+        filename = os.path.basename(fn)
+
+
+        if sum(n < 0 for n in patient_array) >= 1:
+            negative[filename] = "----negative-----"
         else:
-            negative[fn] = "positive"
+            negative[filename] = "positive"
+
+        print([n for n in patient_array if n < 0])
+
     return negative

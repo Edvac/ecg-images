@@ -3,14 +3,6 @@ import sys
 from statistics import mean
 
 import numpy as np
-import scipy
-
-
-import plotly.plotly as py
-import plotly.graph_objs as go
-import plotly.tools as tools
-
-
 
 
 def test_normalize():

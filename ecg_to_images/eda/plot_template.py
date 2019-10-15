@@ -1,17 +1,11 @@
-import datetime
-import statistics
 import sys
-from statistics import mean
-import seaborn as sns
-from matplotlib import style
-from pandas.plotting import register_matplotlib_converters
-import pylab as pl
+
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
+import seaborn as sns
 
-from ecg_to_images.preprocessing.Normalize import normalize
+from ecg_to_images.preprocessing.normalize import normalize
 
 
 def dummy():

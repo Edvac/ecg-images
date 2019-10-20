@@ -12,6 +12,7 @@ from ecg_to_images.utils.parse_conf_file import parse_config_file
 
 logger = logging.getLogger(__name__)
 
+
 class TestFiltering(TestCase):
 
     def main(self):
@@ -41,7 +42,7 @@ class TestFiltering(TestCase):
             try:
                 # can be used float16 for gpu usage, lowers memory to train larger models
                 # less time for data transfers
-                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float32)
+                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float64)
             except Exception as err:
                 print("Error in create_images method: " + err)
                 logging.exception("txt couldn't properly parsed")
@@ -60,16 +61,16 @@ class TestFiltering(TestCase):
                 continue
 
             try:
-                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float32)
+                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float64)
             except Exception as err:
                 print("Error while reading text file: " + err)
                 logging.exception("txt couldn't properly parsed")
                 raise err
 
         processed_array = upper_threshold(patient_array)
-        check_values = np.where(processed_array > 10)[0] # first position of the array has the values
+        check_values = np.where(processed_array > 10)[0]  # first position of the array has the values
         assert check_values.size == 0, "There are values in the array above the threshold of 10"
 
 
 if __name__ == '__main__':
-   TestFiltering.main()
+    TestFiltering.main()

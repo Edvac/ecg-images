@@ -1,12 +1,12 @@
 import numpy as np
 
 
-def remove_rr_outliers(patient_array, filename):
+def remove_rr_outliers(patient_array: np.ndarray, filename) -> np.ndarray:
     patient_arr_up_thr = upper_threshold(patient_array)
+    return patient_arr_up_thr
 
 
 def upper_threshold(patient_array):
-
     index_to_delete = []
     it = 0
     while it < patient_array.size:
@@ -17,4 +17,3 @@ def upper_threshold(patient_array):
         it += 1
 
     return np.delete(patient_array, index_to_delete)
-

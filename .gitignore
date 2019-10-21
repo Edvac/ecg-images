@@ -105,3 +105,4 @@ venv.bak/
 
 .idea/
 ecg_to_images/eda/plot_template.py
+ecg_to_images/logs/*

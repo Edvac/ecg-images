@@ -5,33 +5,25 @@
 
 .. moduleauthor:: George Politis <g-politis@outlook.com>
 """
-import json
+import logging
 import os
 import sys
-import numpy as np
-import ntpath
-import logging
+from enum import Enum
 
+import numpy as np
+from PIL import Image
 
 # QQ Plot
-from ecg_to_images.eda.std import calc_standard_deviation
 from ecg_to_images.image_types.a_2d.signal_to_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
 from ecg_to_images.image_types.custom_exceptions import ImagePatternError
 from ecg_to_images.image_types.save_images import get_absolute_file_names, save_image
-from PIL import Image
-from enum import Enum
-
-from ecg_to_images.eda.is_normally_distributed import is_normally_dist
-from ecg_to_images.preprocessing.negative_values import negative_values
+from ecg_to_images.preprocessing.preprocessing import preprocessing as preproc
 
 logger = logging.getLogger(__name__)
 
 
-
-
 class EcgImagesA_2D:
-
 
     def __init__(self, size, pattern):
         if 0 <= size <= 10000:
@@ -50,7 +42,6 @@ class EcgImagesA_2D:
             except ImagePatternError as err:
                 logger.error(err.args, exc_info=True)
                 raise
-
 
     @property
     def size(self):  # implements the get - this name is *the* name
@@ -104,13 +95,9 @@ class EcgImagesA_2D:
         # n is the number of chunk arrays.size = 400
         # rr_array: patient RRs in an array
         # array_1_of_400: smaller array, size = p
-        image_array_size = int(options.get("image","size"))
+        image_pixels = int(options.get("image", "size"))
 
         filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
-
-
-
-
 
         for fn in filenames:
             if not os.path.isfile(fn):
@@ -118,25 +105,24 @@ class EcgImagesA_2D:
                 continue
 
             try:
-                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float64)
-            except:
+                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float32)
+            except Exception:
                 e = sys.exc_info()[0]
                 print("Error in create_images method: " + e)
                 continue
 
+            filename_base_name = os.path.basename(fn)
 
+            processed_pa = preproc(patient_array, filename_base_name)
 
-            # calc_standard_deviation(patient_array, False)
-            # is_normally_dist(patient_array)
-            # patient_normalized_array = normalize(patient_array)
-            # patient_standardized_array = standardize(patient_array)
-            # file_name_base_name = ntpath.basename(fn)
-            #
+            # interpolate data
+            # np.interp(patient_array, (patient_array.min(), patient_array.max()), (0, 255))
+
             # it = 0
             # # global image_array_2d
-            # while it < patient_array.size:
+            # while it < processed_pa.size:
             #     # slices go only until the last value, even if it + image_array_size > patient_array.size
-            #     image_array = patient_array[it: it + image_array_size]
+            #     image_array = processed_pa[it: it + image_pixels]
             #
             #     img_obj = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
             #     # img_obj.pattern = options['image']['pattern']
@@ -145,27 +131,24 @@ class EcgImagesA_2D:
             #         image_array_2d = convert_to_snake_two_dim_array(image_array)
             #         save_folder_name = os.path.join(os.path.join
             #                                         (options.get('output', 'img_dir'), "normal_pattern"),
-            #                                         file_name_base_name)
+            #                                         filename_base_name)
             #     elif img_obj.pattern == ImagePattern.SNAKE:
             #         image_array_2d = convert_to_normal_two_dim_array(image_array)
             #         save_folder_name = os.path.join(os.path.join
             #                                         (options.get('output', 'img_dir'), "snake_pattern"),
-            #                                         file_name_base_name)
+            #                                         filename_base_name)
             #     else:
             #         print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
             #         continue
             #
-            #     # clear the variable
+            #     # image = Image.fromarray(np.uint8(image_array_2d), "L")
+            #     # or cv2.imwrite(filename,array)
             #     image = Image.fromarray(image_array_2d, "L")
             #     save_image(image, save_folder_name,
-            #                file_name_base_name + str(it + 1) + "-" + str(it + image_array_size))
-            #     it = it + image_array_size  # moving the 'offset'
+            #                filename_base_name + str(it + 1) + "-" + str(it + image_pixels))
+            #     it = it + image_pixels  # moving the 'offset'
 
-        negative = negative_values(options)
 
-        for attribute, value in negative.items():
-            print('{} : {}'.format(attribute, value))
-        print(len(negative))
 
 
 class ImagePattern(Enum):
@@ -175,5 +158,3 @@ class ImagePattern(Enum):
     @classmethod
     def has_value(cls, value):
         return value in cls.__members__
-
-

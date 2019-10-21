@@ -68,7 +68,7 @@ class EcgImagesA_2D:
         elif value == "SNAKE":
             self._pattern = ImagePattern.SNAKE
         else:
-            logging.debug("lalal")
+            logging.debug("attributer should be NORMAL OR SNAKE -_---<-")
             logging.getLogger().exception("Attribute should be normal or snake")
             raise AttributeError("Attribute should be normal or snake")
 
@@ -105,7 +105,7 @@ class EcgImagesA_2D:
                 continue
 
             try:
-                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float32)
+                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float64)
             except Exception:
                 e = sys.exc_info()[0]
                 print("Error in create_images method: " + e)
@@ -113,10 +113,9 @@ class EcgImagesA_2D:
 
             filename_base_name = os.path.basename(fn)
 
-            processed_pa = preproc(patient_array, filename_base_name)
+            processed_pa = preproc(patient_array, filename_base_name, options)
 
-            # interpolate data
-            # np.interp(patient_array, (patient_array.min(), patient_array.max()), (0, 255))
+
 
             # it = 0
             # # global image_array_2d

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def remove_rr_outliers(patient_array: np.ndarray, filename) -> np.ndarray:
+def remove_rr_outliers(patient_array: np.ndarray) -> np.ndarray:
     patient_arr_up_thr = upper_threshold(patient_array)
     return patient_arr_up_thr
 

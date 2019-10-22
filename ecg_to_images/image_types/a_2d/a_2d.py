@@ -14,7 +14,6 @@ from gmpy2 import is_square
 import numpy as np
 from PIL import Image
 
-
 from ecg_to_images.image_types.a_2d.rrpeaks_to_square_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
 from ecg_to_images.image_types.custom_exceptions import ImagePatternError
@@ -24,7 +23,7 @@ from ecg_to_images.preprocessing.preprocessing import preprocessing as preproc
 logger = logging.getLogger(__name__)
 
 
-class EcgImagesA_2D:
+class EcgImageA_2D:
 
     def __init__(self, size, pattern):
         if size < 0:
@@ -34,6 +33,7 @@ class EcgImagesA_2D:
         if 0 <= size <= 1000000 and is_square(size):
             self._size = size
         else:
+            logger.error("size must be a perfect square and between 0 and 1000000")
             raise ValueError("size must be a perfect square and between 0 and 1000000")
 
         if pattern == "NORMAL":
@@ -83,16 +83,13 @@ class EcgImagesA_2D:
     def pattern(self):
         del self._pattern
 
-    def create_images(self, options):
 
-
-        image_pixels = int(options.get("image", "size"))
-
+    def read_patient_rrppeaks(self, options):
         filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
 
         for fn in filenames:
             if not os.path.isfile(fn):
-                print("Warning in create_images method: " + fn + " does not exists.")
+                print("file:" + fn + " does not exists.")
                 continue
 
             try:
@@ -103,27 +100,28 @@ class EcgImagesA_2D:
                 continue
 
             filename_base_name = os.path.basename(fn)
-
             processed_pa = preproc(patient_array, options)
+            self.create_window_image(self, processed_pa, filename_base_name, options)
 
+    def create_window_image(self, processed_pa, filename_base_name, options):
             it = 0
             while it < processed_pa.size:
                 # slices go only until the last value, even if it + image_array_size > patient_array.size
-                image_array = processed_pa[it: it + image_pixels]
+                img = EcgImageA_2D(int(options['image']['size']), options['image']['pattern'])
 
-                img_obj = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
+                image_array = processed_pa[it: it + img.size]
 
-                if  img_obj.pattern == ImagePattern.NORMAL:
-                    print("Converting RR peaks to images")
+
+                if img.pattern == ImagePattern.NORMAL:
+                    print("Converting RR peaks to normal images")
                     image_array_2d = convert_to_normal_two_dim_array(image_array, options)
-                    save_folder_name = os.path.join(os.path.join
-                                                    (options.get('output', 'img_dir'), "normal_pattern"),
+                    save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "normal_pattern"),
                                                     filename_base_name)
-                elif img_obj.pattern == ImagePattern.SNAKE:
-                    print("Converting RR peaks to images")
+
+                elif img.pattern == ImagePattern.SNAKE:
+                    print("Converting RR peaks to snake images")
                     image_array_2d = convert_to_snake_two_dim_array(image_array, options)
-                    save_folder_name = os.path.join(os.path.join
-                                                    (options.get('output', 'img_dir'), "snake_pattern"),
+                    save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "snake_pattern"),
                                                     filename_base_name)
                 else:
                     print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
@@ -132,14 +130,14 @@ class EcgImagesA_2D:
                 # image = Image.fromarray(np.uint8(image_array_2d), "L")
                 # or cv2.imwrite(filename,array)
                 image = Image.fromarray(image_array_2d, "L")
-                save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + image_pixels))
+                save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
 
-                it = it + image_pixels  # moving the 'offset'
+                it = it + img.size  # moving the 'offset'
 
 
 class ImagePattern(Enum):
-    SNAKE = 1
-    NORMAL = 2
+    NORMAL = 1
+    SNAKE = 2
 
     @classmethod
     def has_value(cls, value):

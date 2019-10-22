@@ -1,12 +1,17 @@
 import numpy as np
 import math
 
+from gmpy2 import is_square
+
 
 def get_side_length(options):
     size = int(options['image']['size'])
     # side of the rectangle
-    side = math.sqrt(size)
-    return side
+    if is_square(size):
+        side = math.sqrt(size)
+        return math.floor(side)
+    else:
+        raise str(size)+"Is not a perfect square"
 
 def convert_to_snake_two_dim_array(one_dim_array, options):
     """Convert 1d array to 2d using snake pattern

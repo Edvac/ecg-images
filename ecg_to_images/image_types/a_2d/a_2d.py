@@ -28,10 +28,14 @@ from ecg_to_images.eda.is_normally_distributed import is_normally_dist
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< Updated upstream
 
 
 class EcgImagesA_2D:
 
+=======
+class EcgImagesA_2D:
+>>>>>>> Stashed changes
 
     def __init__(self, size, pattern):
         if 0 <= size <= 10000:
@@ -91,6 +95,7 @@ class EcgImagesA_2D:
         del self._pattern
 
     def create_images(self, options):
+<<<<<<< Updated upstream
         # def create_images(filenames, image_pattern, folder_name):
         """
         :param folder_name:
@@ -122,6 +127,31 @@ class EcgImagesA_2D:
             except:
                 e = sys.exc_info()[0]
                 print("Error in create_images method: " + e)
+=======
+        read_patient_rrppeaks(self, options)
+
+    def create_window_image(self, processed_pa, filename_base_name, options):
+        it = 0
+        while it < processed_pa.size:
+            # slices go only until the last value, even if it + image_array_size > patient_array.size
+            img = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
+
+            image_array = processed_pa[it: it + img.size]
+
+            if img.pattern == ImagePattern.NORMAL:
+                print("Converting RR peaks to normal images")
+                image_array_2d = convert_to_normal_two_dim_array(image_array, options)
+                save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "normal_pattern"),
+                                                filename_base_name)
+
+            elif img.pattern == ImagePattern.SNAKE:
+                print("Converting RR peaks to snake images")
+                image_array_2d = convert_to_snake_two_dim_array(image_array, options)
+                save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "snake_pattern"),
+                                                filename_base_name)
+            else:
+                print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
+>>>>>>> Stashed changes
                 continue
 
 

@@ -24,7 +24,7 @@ def main():
 
     mod = sys.modules['ecg_to_images.image_types.' + image_type.lower() + "." + image_type.lower()]
 
-    runtime_cls = getattr(mod, 'EcgImages' + image_type)
+    runtime_cls = getattr(mod, 'EcgImage' + image_type)
     getattr(runtime_cls, 'create_images')(runtime_cls, config_file)
 
     end = time.perf_counter()

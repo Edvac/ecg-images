@@ -7,9 +7,11 @@ from ecg_to_images.preprocessing.remove_negative_values import remove_negative_v
 from ecg_to_images.preprocessing.standardize import standardize
 
 
-def preprocessing(patient_array, filename, options) -> np.ndarray:
+def preprocessing(patient_array, options) -> np.ndarray:
+
+
     positive_pa = remove_negative_values(patient_array)
-    filtered_pa = remove_rr_outliers(positive_pa, filename)
+    filtered_pa = remove_rr_outliers(positive_pa)
 
     rescale_conf = options.get("preprocessing", "rescale")
 

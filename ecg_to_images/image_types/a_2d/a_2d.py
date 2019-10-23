@@ -7,30 +7,33 @@
 """
 import logging
 import os
-import sys
+import numpy as np
 from enum import Enum
 
-import numpy as np
 from PIL import Image
+from gmpy2 import is_square
 
-# QQ Plot
-from ecg_to_images.image_types.a_2d.signal_to_array import convert_to_snake_two_dim_array, \
+from ecg_to_images.image_types.a_2d.rrpeaks_to_square_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
 from ecg_to_images.image_types.custom_exceptions import ImagePatternError
-from ecg_to_images.image_types.save_images import get_absolute_file_names, save_image
-from ecg_to_images.preprocessing.preprocessing import preprocessing as preproc
+from ecg_to_images.image_types.read_files import read_patient_rrppeaks
+from ecg_to_images.image_types.save_images import save_image
 
 logger = logging.getLogger(__name__)
 
 
-class EcgImagesA_2D:
+class EcgImageA_2D:
 
     def __init__(self, size, pattern):
-        if 0 <= size <= 10000:
+        if size < 0:
+            raise TypeError("size must be a positive number")
+        k = 0 <= size <= 1000000
+        r = is_square(size)
+        if 0 <= size <= 1000000 and is_square(size):
             self._size = size
         else:
-            raise ValueError("protected_value must be " +
-                             "between 0 and 1000 inclusive")
+            logger.error("size must be a perfect square and between 0 and 1000000")
+            raise ValueError("size must be a perfect square and between 0 and 1000000")
 
         if pattern == "NORMAL":
             self._pattern = ImagePattern.NORMAL
@@ -44,25 +47,24 @@ class EcgImagesA_2D:
                 raise
 
     @property
-    def size(self):  # implements the get - this name is *the* name
+    def size(self):
         return self._size
 
     @property
-    def pattern(self):  # implements the get - this name is *the* name
+    def pattern(self):
         return self._pattern
 
     @size.setter
-    def size(self, value):  # name must be the same
-        if value != int(value):
-            raise TypeError("protected_value must be an integer")
-        if 0 <= value <= 1000:
+    def size(self, value):
+        if value < 0:
+            raise TypeError("size must be a positive number")
+        if 0 <= value <= 1000000 & is_square(value):
             self._size = int(value)
         else:
-            raise ValueError("protected_value must be " +
-                             "between 0 and 1000 inclusive")
+            raise ValueError("size must be a perfect square and between 0 and 1000000")
 
     @pattern.setter
-    def pattern(self, value):  # name must be the same
+    def pattern(self, value):
         if value == "NORMAL":
             self._pattern = ImagePattern.NORMAL
         elif value == "SNAKE":
@@ -72,87 +74,53 @@ class EcgImagesA_2D:
             logging.getLogger().exception("Attribute should be normal or snake")
             raise AttributeError("Attribute should be normal or snake")
 
-    #
     @size.deleter
-    def size(self):  # again, name must be the same
+    def size(self):
         del self._size
 
     @pattern.deleter
-    def pattern(self):  # again, name must be the same
+    def pattern(self):
         del self._pattern
 
     def create_images(self, options):
-        # def create_images(filenames, image_pattern, folder_name):
-        """
-        :param folder_name:
-        :param image_pattern:
-        :param filenames: the name of the file
-        :returns two_dim_array: two_dim_array20x20 which will be used for image creation.
-        :rtype: ndarray
-        :raises FileNotFoundError: The filename does not correspond to a patient.
-        """
+        read_patient_rrppeaks(self, options)
 
-        # n is the number of chunk arrays.size = 400
-        # rr_array: patient RRs in an array
-        # array_1_of_400: smaller array, size = p
-        image_pixels = int(options.get("image", "size"))
+    def create_window_image(self, processed_pa, filename_base_name, options):
+        it = 0
+        while it < processed_pa.size:
+            # slices go only until the last value, even if it + image_array_size > patient_array.size
+            img = EcgImageA_2D(int(options['image']['size']), options['image']['pattern'])
 
-        filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
+            image_array = processed_pa[it: it + img.size]
 
-        for fn in filenames:
-            if not os.path.isfile(fn):
-                print("Warning in create_images method: " + fn + " does not exists.")
+            if img.pattern == ImagePattern.NORMAL:
+                print("Converting RR peaks to normal images")
+                image_array_2d = convert_to_normal_two_dim_array(image_array, options)
+                save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "normal_pattern"),
+                                                filename_base_name)
+
+            elif img.pattern == ImagePattern.SNAKE:
+                print("Converting RR peaks to snake images")
+                image_array_2d = convert_to_snake_two_dim_array(image_array, options)
+                save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "snake_pattern"),
+                                                filename_base_name)
+            else:
+                print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                 continue
 
-            try:
-                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float64)
-            except Exception:
-                e = sys.exc_info()[0]
-                print("Error in create_images method: " + e)
-                continue
+            # or cv2.imwrite(filename,array)
+            if options['preprocessing']['rescale'] == 'normalize_to_byte_image':
+                image = Image.fromarray(np.uint8(image_array_2d), "L")
+            else:
+                image = Image.fromarray(image_array_2d, "L")
+            save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
 
-            filename_base_name = os.path.basename(fn)
-
-            processed_pa = preproc(patient_array, filename_base_name, options)
-
-
-
-            # it = 0
-            # # global image_array_2d
-            # while it < processed_pa.size:
-            #     # slices go only until the last value, even if it + image_array_size > patient_array.size
-            #     image_array = processed_pa[it: it + image_pixels]
-            #
-            #     img_obj = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
-            #     # img_obj.pattern = options['image']['pattern']
-            #
-            #     if (img_obj.pattern == ImagePattern.NORMAL):
-            #         image_array_2d = convert_to_snake_two_dim_array(image_array)
-            #         save_folder_name = os.path.join(os.path.join
-            #                                         (options.get('output', 'img_dir'), "normal_pattern"),
-            #                                         filename_base_name)
-            #     elif img_obj.pattern == ImagePattern.SNAKE:
-            #         image_array_2d = convert_to_normal_two_dim_array(image_array)
-            #         save_folder_name = os.path.join(os.path.join
-            #                                         (options.get('output', 'img_dir'), "snake_pattern"),
-            #                                         filename_base_name)
-            #     else:
-            #         print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
-            #         continue
-            #
-            #     # image = Image.fromarray(np.uint8(image_array_2d), "L")
-            #     # or cv2.imwrite(filename,array)
-            #     image = Image.fromarray(image_array_2d, "L")
-            #     save_image(image, save_folder_name,
-            #                filename_base_name + str(it + 1) + "-" + str(it + image_pixels))
-            #     it = it + image_pixels  # moving the 'offset'
-
-
+            it = it + img.size  # moving the 'offset'
 
 
 class ImagePattern(Enum):
-    SNAKE = 1
-    NORMAL = 2
+    NORMAL = 1
+    SNAKE = 2
 
     @classmethod
     def has_value(cls, value):

@@ -7,6 +7,7 @@
 """
 import logging
 import os
+import numpy as np
 from enum import Enum
 
 from PIL import Image
@@ -107,9 +108,11 @@ class EcgImageA_2D:
                 print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                 continue
 
-            # image = Image.fromarray(np.uint8(image_array_2d), "L")
             # or cv2.imwrite(filename,array)
-            image = Image.fromarray(image_array_2d, "L")
+            if options['preprocessing']['rescale'] == 'normalize_to_byte_image':
+                image = Image.fromarray(np.uint8(image_array_2d), "L")
+            else:
+                image = Image.fromarray(image_array_2d, "L")
             save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
 
             it = it + img.size  # moving the 'offset'

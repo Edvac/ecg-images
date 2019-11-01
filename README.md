@@ -1,20 +1,19 @@
 # ecg-images
 Convert ecg signals to images
 
-### This repository contains six different module, each module creates a different type of an image the reason
-### Is to investigate possible different results in a CNN using different inputs
+### This repository contains six different modules, each module creates a different type of an image. The reason is to investigate different possible results in a CNN using different inputs.
 
 
 #### Explanation of image types
 
-| Image Type    |Description    | Dimensions|
-| ------------- |:-------------:| -----:|
-| A_2D | Images with same size but different population | two |
-| A_1D | Images with same size but different population | one |
-| B_2D | Images with different size but same population | two |
-| B_1D | Images with different size but same population | one |
-| C_2D | Images with same size and same population | two |
-| C_1D | Images with same size and same population | one |
+| Image Type    |Description    | Dimensions| Status |
+| ------------- |:-------------:| ---------:| ------:|
+| A_2D | Images with same size but different population | two | 100% |
+| A_1D | Images with same size but different population | one | 95%  |
+| B_2D | Images with different size but same population | two | not selected for development |
+| B_1D | Images with different size but same population | one | not selected for development |
+| C_2D | Images with same size and same population | two | not selected for development |
+| C_1D | Images with same size and same population | one | not selected for development |
 
 
 # How to run the project.

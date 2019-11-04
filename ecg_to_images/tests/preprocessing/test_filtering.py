@@ -5,7 +5,7 @@ import unittest
 from unittest import TestCase
 import numpy as np
 
-from ecg_to_images.image_types.save_images import get_absolute_file_names
+from ecg_to_images.image_types.read_files import get_absolute_file_names
 from ecg_to_images.preprocessing.filtering import upper_threshold
 from ecg_to_images.utils.parse_cmd_args import parse_cmd_arguments
 from ecg_to_images.utils.parse_conf_file import parse_config_file

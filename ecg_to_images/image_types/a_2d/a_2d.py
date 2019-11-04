@@ -22,7 +22,7 @@ from ecg_to_images.image_types.save_images import save_image
 logger = logging.getLogger(__name__)
 
 
-class EcgImageA_2D:
+class EcgImagesA_2D:
 
     def __init__(self, size, pattern):
         if size < 0:
@@ -83,37 +83,37 @@ class EcgImageA_2D:
         del self._pattern
 
     def create_images(self, options):
-        read_patient_rrppeaks(self, options)
+
+        if int(options['image']['size']) > 0:
+            read_patient_rrppeaks(self, options)
+        else:
+            raise Exception("image size should be > 0")
 
     def create_window_image(self, processed_pa, filename_base_name, options):
         it = 0
         while it < processed_pa.size:
             # slices go only until the last value, even if it + image_array_size > patient_array.size
-            img = EcgImageA_2D(int(options['image']['size']), options['image']['pattern'])
+            img = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
 
             image_array = processed_pa[it: it + img.size]
 
             if img.pattern == ImagePattern.NORMAL:
-                print("Converting RR peaks to normal images")
                 image_array_2d = convert_to_normal_two_dim_array(image_array, options)
-                save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "normal_pattern"),
-                                                filename_base_name)
-
+                save_folder_name = os.path.join(os.path.join(os.path.join(options.get('output', 'img_dir'),
+                                                                          "normal_pattern"), "a_2d"), filename_base_name)
             elif img.pattern == ImagePattern.SNAKE:
-                print("Converting RR peaks to snake images")
                 image_array_2d = convert_to_snake_two_dim_array(image_array, options)
-                save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "snake_pattern"),
-                                                filename_base_name)
+                save_folder_name = os.path.join(os.path.join(os.path.join(options.get('output', 'img_dir'),
+                                                                          "snake_pattern"), 'a_2d'), filename_base_name)
             else:
                 print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                 continue
 
             # or cv2.imwrite(filename,array)
-            if options['preprocessing']['rescale'] == 'normalize_to_byte_image':
-                image = Image.fromarray(np.uint8(image_array_2d), "L")
-            else:
-                image = Image.fromarray(image_array_2d, "L")
-            save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
+            save_image(image_array_2d,
+                       save_folder_name,
+                       filename_base_name + str(it + 1) + "-" + str(it + img.size),
+                       options)
 
             it = it + img.size  # moving the 'offset'
 

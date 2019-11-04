@@ -33,10 +33,10 @@ for (i in 1:length(files)){
     
     hrv.data = BuildNIHR(hrv.data)
     
-    # PlotNIHR(hrv.data, Tags = NULL, Indexes = NULL,
-    #          main = "Non-interpolated instantaneous heart rate", xlab = "time (sec.)",
-    #          ylab = "HR (beats/min.)", type = "l", ylim = NULL, Tag = NULL,
-    #          verbose = NULL)
+    PlotNIHR(hrv.data, Tags = NULL, Indexes = NULL,
+             main = "Non-interpolated instantaneous heart rate", xlab = "time (sec.)",
+             ylab = "HR (beats/min.)", type = "l", ylim = NULL, Tag = NULL,
+             verbose = NULL)
     
     hrv.data.filtered = FilterNIHR(hrv.data)
     

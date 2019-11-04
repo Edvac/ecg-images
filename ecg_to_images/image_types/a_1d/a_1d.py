@@ -1,10 +1,3 @@
-"""
-.. module:: project_documentation
-    :platform: Win 64bit
-    :synopsis: module creating images from 24h RR intervals
-
-.. moduleauthor:: George Politis <g-politis@outlook.com>
-"""
 import logging
 import os
 import numpy as np
@@ -13,8 +6,6 @@ from enum import Enum
 from PIL import Image
 from gmpy2 import is_square
 
-from ecg_to_images.image_types.a_2d.rrpeaks_to_square_array import convert_to_snake_two_dim_array, \
-    convert_to_normal_two_dim_array
 from ecg_to_images.image_types.custom_exceptions import ImagePatternError
 from ecg_to_images.image_types.read_files import read_patient_rrppeaks
 from ecg_to_images.image_types.save_images import save_image
@@ -22,7 +13,7 @@ from ecg_to_images.image_types.save_images import save_image
 logger = logging.getLogger(__name__)
 
 
-class EcgImagesA_2D:
+class EcgImagesA_1D:
 
     def __init__(self, size, pattern):
         if size < 0:
@@ -70,7 +61,7 @@ class EcgImagesA_2D:
         elif value == "SNAKE":
             self._pattern = ImagePattern.SNAKE
         else:
-            logging.debug("attributer should be NORMAL OR SNAKE -_---<-")
+            logging.debug("attribute should be NORMAL OR SNAKE -_---<-")
             logging.getLogger().exception("Attribute should be normal or snake")
             raise AttributeError("Attribute should be normal or snake")
 
@@ -87,33 +78,32 @@ class EcgImagesA_2D:
 
     def create_window_image(self, processed_pa, filename_base_name, options):
         it = 0
+        turn = False
         while it < processed_pa.size:
             # slices go only until the last value, even if it + image_array_size > patient_array.size
-            img = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
+            img = EcgImagesA_1D(int(options['image']['size']), options['image']['pattern'])
 
             image_array = processed_pa[it: it + img.size]
 
             if img.pattern == ImagePattern.NORMAL:
                 print("Converting RR peaks to normal images")
-                image_array_2d = convert_to_normal_two_dim_array(image_array, options)
                 save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "normal_pattern"),
                                                 filename_base_name)
 
             elif img.pattern == ImagePattern.SNAKE:
                 print("Converting RR peaks to snake images")
-                image_array_2d = convert_to_snake_two_dim_array(image_array, options)
+                if turn:
+                    image_array = np.flip(image_array)
+                    turn = False
+                else:
+                    turn = True
                 save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "snake_pattern"),
                                                 filename_base_name)
             else:
                 print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                 continue
 
-            # or cv2.imwrite(filename,array)
-            if options['preprocessing']['rescale'] == 'normalize_to_byte_image':
-                image = Image.fromarray(np.uint8(image_array_2d), "L")
-            else:
-                image = Image.fromarray(image_array_2d, "L")
-            save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
+            save_image(image_array, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size), options)
 
             it = it + img.size  # moving the 'offset'
 

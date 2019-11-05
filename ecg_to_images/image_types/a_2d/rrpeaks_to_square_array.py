@@ -64,7 +64,7 @@ def convert_to_normal_two_dim_array(one_dim_array, options):
 
     one_dim_array_size = one_dim_array.size
     side = int(get_side_length(options)) # width and height of the image
-    two_dim_array = np.zeros((side, side), dtype=np.float64)
+    two_dim_array = np.zeros((side, side), dtype=one_dim_array.dtype)
     k = 0
     for i in range(0, side):
         for j in range(0, side):

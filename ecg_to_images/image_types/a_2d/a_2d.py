@@ -10,9 +10,9 @@ import os
 import sys
 from enum import Enum
 from gmpy2 import is_square
-
-import numpy as np
 from PIL import Image
+import numpy as np
+
 
 from ecg_to_images.image_types.a_2d.rrpeaks_to_square_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
@@ -113,13 +113,11 @@ class EcgImagesA_2D:
 
 
                 if img.pattern == ImagePattern.NORMAL:
-                    print("Converting RR peaks to normal images")
                     image_array_2d = convert_to_normal_two_dim_array(image_array, options)
                     save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "normal_pattern"),
                                                     filename_base_name)
 
                 elif img.pattern == ImagePattern.SNAKE:
-                    print("Converting RR peaks to snake images")
                     image_array_2d = convert_to_snake_two_dim_array(image_array, options)
                     save_folder_name = os.path.join(os.path.join(options.get('output', 'img_dir'), "snake_pattern"),
                                                     filename_base_name)
@@ -127,10 +125,11 @@ class EcgImagesA_2D:
                     print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                     continue
 
-                # image = Image.fromarray(np.uint8(image_array_2d), "L")
+                image = Image.fromarray(np.uint8(image_array_2d), "L")
                 # or cv2.imwrite(filename,array)
-                image = Image.fromarray(image_array_2d, "L")
-                save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
+                # image = Image.fromarray(image_array_2d, "L")
+                # save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
+                save_image(image_array_2d, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
 
                 it = it + img.size  # moving the 'offset'
 

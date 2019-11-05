@@ -23,7 +23,7 @@ from ecg_to_images.preprocessing.preprocessing import preprocessing as preproc
 logger = logging.getLogger(__name__)
 
 
-class EcgImageA_2D:
+class EcgImagesA_2D:
 
     def __init__(self, size, pattern):
         if size < 0:
@@ -107,7 +107,7 @@ class EcgImageA_2D:
             it = 0
             while it < processed_pa.size:
                 # slices go only until the last value, even if it + image_array_size > patient_array.size
-                img = EcgImageA_2D(int(options['image']['size']), options['image']['pattern'])
+                img = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
 
                 image_array = processed_pa[it: it + img.size]
 

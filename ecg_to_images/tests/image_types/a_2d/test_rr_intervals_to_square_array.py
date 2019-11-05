@@ -1,7 +1,7 @@
 import numpy as np
 from gmpy2 import is_square
 
-from ecg_to_images.image_types.a_2d.rrpeaks_to_square_array import convert_to_snake_two_dim_array, \
+from ecg_to_images.image_types.a_2d.rr_intervals_to_square_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array, get_side_length
 
 

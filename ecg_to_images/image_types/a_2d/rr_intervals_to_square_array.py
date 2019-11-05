@@ -11,7 +11,7 @@ def get_side_length(options):
         side = math.sqrt(size)
         return math.floor(side)
     else:
-        raise str(size)+"Is not a perfect square"
+        raise ArithmeticError(str(size) + "Is not a perfect square")
 
 
 def convert_to_normal_two_dim_array(one_dim_array: np.ndarray, options) -> np.ndarray:

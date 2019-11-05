@@ -3,10 +3,9 @@ import sys
 import numpy as np
 
 from ecg_to_images.image_types.save_images import get_absolute_file_names
-from ecg_to_images.preprocessing.preprocessing import preprocessing as preproc
 
 
-def read_patient_rrppeaks(self, options):
+def read_patient_rr_intervals(self, options):
     filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
 
     for fn in filenames:
@@ -22,5 +21,4 @@ def read_patient_rrppeaks(self, options):
             continue
 
         filename_base_name = os.path.basename(fn)
-        processed_pa = preproc(patient_array, options)
-        self.create_window_image(self, processed_pa, filename_base_name, options)
+        self.create_window_image(self, patient_array, filename_base_name, options)

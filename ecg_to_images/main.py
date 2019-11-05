@@ -4,7 +4,9 @@ import importlib
 
 from ecg_to_images import image_types
 from ecg_to_images.image_types.a_2d import a_2d
+from ecg_to_images.image_types.a_1d import a_1d
 import ecg_to_images.image_types.a_2d.a_2d
+import ecg_to_images.image_types.a_1d.a_1d
 from ecg_to_images.utils.create_logs import init_log
 from ecg_to_images.utils.parse_cmd_args import  parse_cmd_arguments
 from ecg_to_images.utils.parse_conf_file import parse_config_file
@@ -25,7 +27,7 @@ def main():
     mod = sys.modules['ecg_to_images.image_types.' + image_type.lower() + "." + image_type.lower()]
 
     runtime_cls = getattr(mod, 'EcgImages' + image_type)
-    getattr(runtime_cls, 'read_patient_rrppeaks')(runtime_cls, config_file)
+    getattr(runtime_cls, 'create_images')(runtime_cls, config_file)
 
     end = time.perf_counter()
     elapsed = end - start

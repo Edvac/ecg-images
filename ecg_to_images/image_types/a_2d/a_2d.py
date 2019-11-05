@@ -7,18 +7,24 @@
 """
 import logging
 import os
-import sys
+import numpy as np
 from enum import Enum
+<<<<<<< HEAD
 from gmpy2 import is_square
 from PIL import Image
 import numpy as np
 
+=======
+
+from PIL import Image
+from gmpy2 import is_square
+>>>>>>> c9932bc5aaf8f078381f3122eb7dc4ba08d4b633
 
 from ecg_to_images.image_types.a_2d.rrpeaks_to_square_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
 from ecg_to_images.image_types.custom_exceptions import ImagePatternError
-from ecg_to_images.image_types.save_images import get_absolute_file_names, save_image
-from ecg_to_images.preprocessing.preprocessing import preprocessing as preproc
+from ecg_to_images.image_types.read_files import read_patient_rrppeaks
+from ecg_to_images.image_types.save_images import save_image
 
 logger = logging.getLogger(__name__)
 
@@ -83,26 +89,40 @@ class EcgImagesA_2D:
     def pattern(self):
         del self._pattern
 
+    def create_images(self, options):
 
-    def read_patient_rrppeaks(self, options):
-        filenames = get_absolute_file_names(options.get("ecg_data", "ecg_txt_data"))
+        if int(options['image']['size']) > 0:
+            read_patient_rrppeaks(self, options)
+        else:
+            raise Exception("image size should be > 0")
 
-        for fn in filenames:
-            if not os.path.isfile(fn):
-                print("file:" + fn + " does not exists.")
+    def create_window_image(self, processed_pa, filename_base_name, options):
+        it = 0
+        while it < processed_pa.size:
+            # slices go only until the last value, even if it + image_array_size > patient_array.size
+            img = EcgImagesA_2D(int(options['image']['size']), options['image']['pattern'])
+
+            image_array = processed_pa[it: it + img.size]
+
+            if img.pattern == ImagePattern.NORMAL:
+                image_array_2d = convert_to_normal_two_dim_array(image_array, options)
+                save_folder_name = os.path.join(os.path.join(os.path.join(options.get('output', 'img_dir'),
+                                                                          "normal_pattern"), "a_2d"), filename_base_name)
+            elif img.pattern == ImagePattern.SNAKE:
+                image_array_2d = convert_to_snake_two_dim_array(image_array, options)
+                save_folder_name = os.path.join(os.path.join(os.path.join(options.get('output', 'img_dir'),
+                                                                          "snake_pattern"), 'a_2d'), filename_base_name)
+            else:
+                print("Warning: unknown image pattern (use NORMAL or SNAKE) ")
                 continue
 
-            try:
-                patient_array = np.genfromtxt(fn, delimiter='\n', dtype=np.float64)
-            except Exception:
-                e = sys.exc_info()[0]
-                print("Error while reading RR peaks to numpy array: " + e)
-                continue
+            # or cv2.imwrite(filename,array)
+            save_image(image_array_2d,
+                       save_folder_name,
+                       filename_base_name + str(it + 1) + "-" + str(it + img.size),
+                       options)
 
-            filename_base_name = os.path.basename(fn)
-            processed_pa = preproc(patient_array, options)
-            self.create_window_image(self, processed_pa, filename_base_name, options)
-
+<<<<<<< HEAD
     def create_window_image(self, processed_pa, filename_base_name, options):
             it = 0
             while it < processed_pa.size:
@@ -132,6 +152,9 @@ class EcgImagesA_2D:
                 save_image(image_array_2d, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
 
                 it = it + img.size  # moving the 'offset'
+=======
+            it = it + img.size  # moving the 'offset'
+>>>>>>> c9932bc5aaf8f078381f3122eb7dc4ba08d4b633
 
 
 class ImagePattern(Enum):

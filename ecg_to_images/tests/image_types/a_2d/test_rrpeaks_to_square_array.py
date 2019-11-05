@@ -15,12 +15,12 @@ def test_get_side_length():
 
 
 def test_convert_to_normal_two_dim_array_TwoDim():
-
-    options = { "image": {"size": "36"} }
+    options = {"image": {"size": "36"}}
     test_array = np.arange(36)
 
     two_dim_array = convert_to_normal_two_dim_array(test_array, options)
     assert two_dim_array.ndim == 2, "Normal array is not 2D"
+
 
 def test_convert_to_normal_two_dim_array_NotEmpty():
     options = {"image": {"size": "40000"}}
@@ -29,13 +29,14 @@ def test_convert_to_normal_two_dim_array_NotEmpty():
     two_dim_array = convert_to_normal_two_dim_array(test_array, options)
     assert two_dim_array.size != 0, "The array is empty"
 
-def test_convert_to_snake_two_dim_array_TwoDim():
 
-    options = { "image": {"size": "25"} }
+def test_convert_to_snake_two_dim_array_TwoDim():
+    options = {"image": {"size": "25"}}
     test_array = np.arange(25)
 
     two_dim_array = convert_to_snake_two_dim_array(test_array, options)
     assert two_dim_array.ndim == 2, "Snake array is not 2D"
+
 
 def test_convert_to_snake_two_dim_array_NotEmpty():
     options = {"image": {"size": "9801"}}
@@ -44,3 +45,11 @@ def test_convert_to_snake_two_dim_array_NotEmpty():
     two_dim_array = convert_to_snake_two_dim_array(test_array, options)
     assert two_dim_array.size != 0, "The array is empty"
 
+
+def test_image_paterns_NotSame():
+    options = {"image": {"size": "2500"}}
+    test_array = np.arange(2500)
+
+    snake_two_dim_array = convert_to_snake_two_dim_array(test_array, options)
+    normal_two_dim_array = convert_to_normal_two_dim_array(test_array, options)
+    assert not np.array_equal(snake_two_dim_array, normal_two_dim_array), "The arrays are not suppossed to be equal"

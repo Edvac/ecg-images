@@ -13,7 +13,7 @@ from enum import Enum
 from PIL import Image
 from gmpy2 import is_square
 
-from ecg_to_images.image_types.a_2d.rrpeaks_to_square_array import convert_to_snake_two_dim_array, \
+from ecg_to_images.image_types.a_2d.rr_intervals_to_square_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
 from ecg_to_images.image_types.custom_exceptions import ImagePatternError
 from ecg_to_images.image_types.read_files import read_patient_rrppeaks

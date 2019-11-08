@@ -12,12 +12,15 @@ def preprocessing(patient_array, options) -> np.ndarray:
     positive_pa = remove_negative_values(patient_array)
     filtered_pa = remove_rr_outliers(positive_pa)
 
+    # linear to logarithmic scale
+    filtered_pa2 = np.log10(filtered_pa)
+
     rescale_conf = options.get("preprocessing", "rescale")
 
     if rescale_conf == 'normalize':
        rescaled_pa = normalize(filtered_pa)
     elif rescale_conf == 'normalize_to_byte_image':
-        rescaled_pa = normalize_to_byte_img(filtered_pa)
+        rescaled_pa = normalize_to_byte_img(filtered_pa, options)
     elif rescale_conf == 'standardize':
         rescaled_pa = standardize(filtered_pa)
     else:

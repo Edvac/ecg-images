@@ -12,10 +12,7 @@ def preprocessing(patient_array, options) -> np.ndarray:
     positive_pa = remove_negative_values(patient_array)
     filtered_pa = remove_rr_outliers(positive_pa)
 
-    # linear to logarithmic scale
-    filtered_pa2 = np.log10(filtered_pa)
-
-    rescale_conf = options.get("preprocessing", "rescale")
+    rescale_conf = options.get("preprocessing", "rescale_type")
 
     if rescale_conf == 'normalize':
        rescaled_pa = normalize(filtered_pa)

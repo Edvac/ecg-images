@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def normalize_to_byte_img(filtered_patient_array, options):
+def normalize_to_byte_img(filtered_patient_array):
     """This function rescales the filtered values into [0,255] interval.
     If the scale is linear:
 

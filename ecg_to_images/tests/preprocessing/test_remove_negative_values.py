@@ -106,5 +106,6 @@ class TestRemove_negative_values(TestCase):
                 logger.error(err.args, exc_info=True)
                 raise
 
-            print("Initial version is :" + str(similarity_percentage) + "% similar with the array without negative values")
+            print("Initial version is :" + str(similarity_percentage) + "% similar in terms of same values"
+                                                                        "with the array without negative values")
             assert similarity_percentage > 99.99

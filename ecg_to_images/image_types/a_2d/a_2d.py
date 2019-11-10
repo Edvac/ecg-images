@@ -73,7 +73,7 @@ class EcgImageA_2D:
         elif value == "SNAKE":
             self._pattern = ImagePattern.SNAKE
         else:
-            logging.debug("attributer should be NORMAL OR SNAKE -_---<-")
+            logging.debug("attribute should be NORMAL OR SNAKE -_---<-")
             logging.getLogger().exception("Attribute should be normal or snake")
             raise AttributeError("Attribute should be normal or snake")
 

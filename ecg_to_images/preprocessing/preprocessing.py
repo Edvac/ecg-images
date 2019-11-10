@@ -22,7 +22,7 @@ def preprocessing(patient_array, options) -> np.ndarray:
     if rescale_conf == 'normalize':
        rescaled_pa = normalize(filtered_pa)
     elif rescale_conf == 'normalize_to_byte_image':
-        rescaled_pa = normalize_to_byte_img(filtered_pa, options)
+        rescaled_pa = normalize_to_byte_img(filtered_pa)
     elif rescale_conf == 'standardize':
         rescaled_pa = standardize(filtered_pa)
     else:

@@ -1,6 +1,7 @@
 import numpy as np
 
-from ecg_to_images.preprocessing.filtering import remove_rr_outliers
+from ecg_to_images.preprocessing.filtering import remove_range_outliers
+from ecg_to_images.preprocessing.linear_to_log import log_scale
 from ecg_to_images.preprocessing.normalize import normalize
 from ecg_to_images.preprocessing.normalize_to_byte_img import normalize_to_byte_img
 from ecg_to_images.preprocessing.remove_negative_values import remove_negative_values
@@ -10,7 +11,11 @@ from ecg_to_images.preprocessing.standardize import standardize
 def preprocessing(patient_array, options) -> np.ndarray:
 
     positive_pa = remove_negative_values(patient_array)
-    filtered_pa = remove_rr_outliers(positive_pa)
+    filtered_pa = remove_range_outliers(positive_pa, options)
+
+    scale_conf = options.get("preprocessing", "scale")
+    if scale_conf != "linear":
+        filtered_pa = log_scale(filtered_pa, scale_conf)
 
     rescale_conf = options.get("preprocessing", "rescale_type")
 

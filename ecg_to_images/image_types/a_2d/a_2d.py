@@ -8,13 +8,13 @@
 import logging
 import os
 import numpy as np
-
 from enum import Enum
 
 from PIL import Image
 from gmpy2 import is_square
 
 
+from ecg_to_images.eda.descriptive_stats import calc_desc_stats, save_csv
 from ecg_to_images.preprocessing.preprocessing import preprocessing as preproc
 from ecg_to_images.image_types.a_2d.rr_intervals_to_square_array import convert_to_snake_two_dim_array, \
     convert_to_normal_two_dim_array
@@ -90,6 +90,11 @@ class EcgImageA_2D:
 
     def create_window_image(self, patient_array, filename_base_name, options):
 
+        # Store the raw data before preprocessing
+        descriptive_stats_list = calc_desc_stats(patient_array)
+        descriptive_stats_list.insert(0, filename_base_name)
+
+
         processed_pa = preproc(patient_array, options)
         
         it = 0
@@ -117,6 +122,12 @@ class EcgImageA_2D:
             save_image(image, save_folder_name, filename_base_name + str(it + 1) + "-" + str(it + img.size))
 
             it = it + img.size  # moving the 'offset'
+
+
+
+        return(descriptive_stats_list)
+
+
 
 
 class ImagePattern(Enum):
